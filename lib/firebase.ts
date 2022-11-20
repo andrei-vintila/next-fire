@@ -41,7 +41,7 @@ function createFirebaseApp(config: FirebaseOptions) {
 
 // const firebaseApp = initializeApp(firebaseConfig);
 const firebaseApp = createFirebaseApp(firebaseConfig);
-export const analytics = getAnalytics(firebaseApp);
+// export const analytics = getAnalytics(firebaseApp);
 
 // Auth exports
 // export const auth = firebase.auth();
