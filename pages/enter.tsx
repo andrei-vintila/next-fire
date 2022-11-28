@@ -1,9 +1,15 @@
 import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, firestore, googleAuthProvider } from "../lib/firebase";
 import Image from "next/image";
-import { useCallback, useContext, useEffect, useState } from "react";
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  ChangeEvent,
+} from "react";
 import { UserContext } from "../lib/context";
-import { doc, getDoc, writeBatch } from "firebase/firestore";
+import { doc, getDoc, writeBatch, getFirestore } from "firebase/firestore";
 import debounce from "lodash.debounce";
 
 export default function EnterPage({}) {
@@ -49,7 +55,23 @@ function UsernameForm() {
 
   const { user, username } = useContext(UserContext);
 
-  const onChange = (e) => {
+  const onSubmit = async (e: SubmitEvent) => {
+    e.preventDefault();
+    const userDoc = doc(getFirestore(), "users", user.uid);
+    const usernameDoc = doc(getFirestore(), "usernames", formValue);
+
+    const batch = writeBatch(getFirestore());
+
+    batch.set(userDoc, {
+      username: formValue,
+      photoURL: user.photoURL,
+      displayName: user.displayName,
+    });
+    batch.set(usernameDoc, { uid: user.uid });
+
+    await batch.commit();
+  };
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toLowerCase();
     const re = /^(?=[a-zA-Z0-9._]{3,15}$)(?!.*[_.]{2})[^_.].*[^_.]$/;
 
@@ -67,37 +89,22 @@ function UsernameForm() {
     }
   };
   const checkUsername = useCallback(
-    debounce(async (username: string) => {
+    debounce(async (username) => {
       if (username.length >= 3) {
-        const ref = doc(firestore, `usernames`, username);
-        const { exists } = await getDoc(ref);
-        console.log("Firesore read executed!");
-        setIsValid(!exists);
+        const ref = doc(getFirestore(), "usernames", username);
+        const snap = await getDoc(ref);
+        console.log("Firestore read executed!", snap.exists());
+        setIsValid(!snap.exists());
         setLoading(false);
       }
     }, 500),
     []
   );
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    const userDoc = doc(firestore, "users", user.uid);
-    const usernameDoc = doc(firestore, "usernames", formValue);
-
-    const batch = writeBatch(firestore);
-
-    batch.set(userDoc, {
-      username: formValue,
-      photoURL: user.photoURL,
-      displayName: user.displayName,
-    });
-    batch.set(usernameDoc, { uid: user.uid });
-
-    await batch.commit();
-  };
   useEffect(() => {
     checkUsername(formValue);
   }, [formValue]);
+
   return (
     !username && (
       <section>
