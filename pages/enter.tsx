@@ -71,6 +71,7 @@ function UsernameForm() {
 
     await batch.commit();
   };
+
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toLowerCase();
     const re = /^(?=[a-zA-Z0-9._]{3,15}$)(?!.*[_.]{2})[^_.].*[^_.]$/;
@@ -88,6 +89,7 @@ function UsernameForm() {
       setIsValid(false);
     }
   };
+
   const checkUsername = useCallback(
     debounce(async (username) => {
       if (username.length >= 3) {
