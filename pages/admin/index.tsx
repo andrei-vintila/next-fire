@@ -72,7 +72,7 @@ function CreateNewPost() {
       content: "# hello world",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-      heartcount: 0,
+      heartCount: 0,
     };
 
     await setDoc(ref, data);
